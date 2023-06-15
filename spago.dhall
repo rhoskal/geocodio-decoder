@@ -1,5 +1,16 @@
 { name = "my-project"
-, dependencies = [ "console", "effect", "prelude" ]
+, dependencies =
+  [ "aff"
+  , "affjax"
+  , "affjax-node"
+  , "argonaut"
+  , "argonaut-codecs"
+  , "argonaut-core"
+  , "console"
+  , "effect"
+  , "either"
+  , "prelude"
+  ]
 , license = ""
 , packages = ./packages.dhall
 , repository = ""
