@@ -12,11 +12,10 @@ import Prelude
 
 import Affjax as AX
 import Affjax.Node as AN
-import Affjax.RequestBody as RequestBody
+-- import Affjax.RequestBody as RequestBody
 import Affjax.ResponseFormat as ResponseFormat
-import Data.Argonaut (class DecodeJson, class EncodeJson, jsonEmptyObject)
-import Data.Argonaut.Core (Json)
-import Data.Argonaut.Core as J
+import Data.Argonaut (class DecodeJson, class EncodeJson, Json)
+import Data.Argonaut as J
 import Data.Argonaut.Decode (JsonDecodeError, (.:), (.:?))
 import Data.Argonaut.Decode as JD
 import Data.Argonaut.Encode ((:=), (:=?), (~>), (~>?))
@@ -47,7 +46,7 @@ instance showAddress :: Show Address where
 instance decodeJsonAddress :: DecodeJson Address where
   decodeJson json = do
     obj <- JD.decodeJson json
-    o <- obj .: "location"
+    o <- obj .: "results"
     accuracy <- o .: "accuracy"
     accuracyType <- o .: "accuracyType"
     components <- o .: "address_components"
@@ -71,7 +70,7 @@ instance encodeJsonAddress :: EncodeJson Address where
       ~> "formatted_address" := a.formatted
       ~> "location" := a.location
       ~> "source" := a.source
-      ~> jsonEmptyObject
+      ~> J.jsonEmptyObject
 
 data AddressComponents = AddressComponents
   { city :: String
@@ -139,7 +138,7 @@ instance encodeJsonAddressComponents :: EncodeJson AddressComponents where
       ~> "street" := ac.street
       ~> "suffix" := ac.suffix
       ~> "zip" := ac.zip
-      ~> jsonEmptyObject
+      ~> J.jsonEmptyObject
 
 data GeoCoords = GeoCoords
   { lat :: Number
@@ -164,7 +163,7 @@ instance encodeJsonGeoCoords :: EncodeJson GeoCoords where
   encodeJson (GeoCoords c) = do
     "lat" := c.lat
       ~> "lng" := c.lng
-      ~> jsonEmptyObject
+      ~> J.jsonEmptyObject
 
 -- | INTERNAL
 addressDecoder :: Json -> Either JsonDecodeError Address
