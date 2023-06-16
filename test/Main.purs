@@ -38,6 +38,12 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
 --         ~> J.jsonEmptyObject
 --   JD.decodeJson json `shouldEqual` (Right unit)
 
+-- https://api.geocod.io/v1.7/geocode?q=asdf&api_key=DEMO
+-- {
+--   error: "Could not geocode address. Postal code or city required."
+-- }
+
+-- https://api.geocod.io/v1.7/geocode?q=1109+N+Highland+St,+Arlington+VA&api_key=DEMO
 -- {
 --   "input":{
 --     "address_components":{

@@ -180,8 +180,9 @@ parts_ (Address address) = address.components
 -- | Validate incoming address against Geocodio API
 validate_ :: String -> Effect Unit
 validate_ apiKey = void $ launchAff $ do
-  result <- AN.get ResponseFormat.json
-    $ "https://api.geocod.io/v1.7/geocode?q=1109+N+Highland+St%2c+Arlington+VA&api_key=" <> apiKey
+  let path = "https://api.geocod.io/v1.7/geocode"
+      query = "?q=" <> "1109+N+Highland+St%2c+Arlington+VA"
+  result <- AN.get ResponseFormat.json $ path <> query <> "&api_key=" <> apiKey
   case result of
     Left err -> log $ "GET /api response failed to decode: " <> AX.printError err
     Right response -> log $ genericShow $ addressDecoder response.body

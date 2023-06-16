@@ -5,7 +5,6 @@
   , "affjax-node"
   , "argonaut"
   , "argonaut-codecs"
-  , "argonaut-core"
   , "console"
   , "effect"
   , "either"
