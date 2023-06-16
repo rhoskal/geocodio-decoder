@@ -14,11 +14,24 @@ import Affjax as AX
 import Affjax.Node as AN
 -- import Affjax.RequestBody as RequestBody
 import Affjax.ResponseFormat as ResponseFormat
-import Data.Argonaut (class DecodeJson, class EncodeJson, Json)
+import Data.Argonaut
+  ( class DecodeJson
+  , class EncodeJson
+  , Json
+  )
 import Data.Argonaut as J
-import Data.Argonaut.Decode (JsonDecodeError, (.:), (.:?))
+import Data.Argonaut.Decode
+  ( JsonDecodeError
+  , (.:)
+  , (.:?)
+  )
 import Data.Argonaut.Decode as JD
-import Data.Argonaut.Encode ((:=), (:=?), (~>), (~>?))
+import Data.Argonaut.Encode
+  ( (:=)
+  , (:=?)
+  , (~>)
+  , (~>?)
+  )
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe)
@@ -48,7 +61,7 @@ instance decodeJsonAddress :: DecodeJson Address where
     obj <- JD.decodeJson json
     o <- obj .: "results"
     accuracy <- o .: "accuracy"
-    accuracyType <- o .: "accuracyType"
+    accuracyType <- o .: "accuracy_type"
     components <- o .: "address_components"
     formatted <- o .: "formatted_address"
     location <- o .: "location"
@@ -180,8 +193,10 @@ parts_ (Address address) = address.components
 -- | Validate incoming address against Geocodio API
 validate_ :: String -> Effect Unit
 validate_ apiKey = void $ launchAff $ do
-  let path = "https://api.geocod.io/v1.7/geocode"
-      query = "?q=" <> "1109+N+Highland+St%2c+Arlington+VA"
+  let
+    path = "https://api.geocod.io/v1.7/geocode"
+    query = "?q=" <> "1109+N+Highland+St%2c+Arlington+VA"
+  -- https://github.com/purescript-contrib/purescript-form-urlencoded
   result <- AN.get ResponseFormat.json $ path <> query <> "&api_key=" <> apiKey
   case result of
     Left err -> log $ "GET /api response failed to decode: " <> AX.printError err
