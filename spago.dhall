@@ -9,6 +9,7 @@
   , "console"
   , "effect"
   , "either"
+  , "maybe"
   , "prelude"
   ]
 , license = ""
