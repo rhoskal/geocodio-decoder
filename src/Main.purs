@@ -1,6 +1,7 @@
 module Main
-  ( Address
-  , AddressComponents
+  ( Address(..)
+  , AddressComponents(..)
+  , GeoCoords(..)
   , batchValidate_
   , format_
   , parts_
@@ -19,99 +20,105 @@ import Data.Argonaut.Core as J
 import Data.Argonaut.Decode (JsonDecodeError, (.:))
 import Data.Argonaut.Decode as JD
 import Data.Either (Either(..))
+import Data.Maybe (Maybe)
 import Effect (Effect)
 import Effect.Aff (launchAff)
 -- import Effect.Console (log)
 import Effect.Class.Console (log)
 
-newtype Address = Address
-  { components :: AddressComponents
+data Address = Address
+  { accuracy :: Int
+  , accuracyType :: String
+  , components :: AddressComponents
   , formatted :: String
   , location :: GeoCoords
-  , accuracy :: Int
-  , accuracyType :: String
   , source :: String
   }
 
-derive newtype instance Eq Address
-derive newtype instance Ord Address
-derive newtype instance Show Address
+derive instance Eq Address
+derive instance Ord Address
+-- derive instance Show Address
 
-derive newtype instance DecodeJson Address
--- instance decodeJsonAddress :: DecodeJson Address where
---   decodeJson json = do
---     o <- JD.decodeJson json
---     o' <- o .: "location"
---     formatted <- o' .: "formatted_address"
---     accuracy <- o' .: "accuracy"
---     accuracyType <- o' .: "accuracyType"
---     source <- o' .: "source"
---     pure $ Address
---       { formatted
---       , accuracy
---       , accuracyType
---       , source
---       }
+instance decodeJsonAddress :: DecodeJson Address where
+  decodeJson json = do
+    obj <- JD.decodeJson json
+    o <- obj .: "location"
+    accuracy <- o .: "accuracy"
+    accuracyType <- o .: "accuracyType"
+    formatted <- o .: "formatted_address"
+    source <- o .: "source"
+    pure $ Address
+      { accuracy
+      , accuracyType
+      , formatted
+      , source
+      }
 
-newtype AddressComponents = AddressComponents
-  { number :: String
-  , predirectional :: String
+data AddressComponents = AddressComponents
+  { city :: String
+  , country :: String
+  , county :: String
+  , formattedStreet :: String
+  , number :: String
+  , predirectional :: Maybe String
+  , secondarynumber :: Maybe String
+  , secondaryunit :: Maybe String
+  , state :: String
   , street :: String
   , suffix :: String
-  , formattedStreet :: String
-  , city :: String
-  , county :: String
-  , state :: String
   , zip :: String
-  , country :: String
   }
 
-derive newtype instance Eq AddressComponents
-derive newtype instance Ord AddressComponents
-derive newtype instance Show AddressComponents
+derive instance Eq AddressComponents
+derive instance Ord AddressComponents
+-- derive instance Show AddressComponents
 
 instance decodeJsonAddressComponents :: DecodeJson AddressComponents where
   decodeJson json = do
-    o <- JD.decodeJson json
-    o' <- o .: "address_components"
-    number <- o' .: "number"
-    predirectional <- o' .: "predirectional "
-    street <- o' .: "street"
-    suffix <- o' .: "suffix"
-    formattedStreet <- o' .: "formatted_street"
-    city <- o' .: "city"
-    county <- o' .: "county"
-    state <- o' .: "state"
-    zip <- o' .: "zip"
-    country <- o' .: "country"
+    obj <- JD.decodeJson json
+    o <- obj .: "address_components"
+    city <- o .: "city"
+    country <- o .: "country"
+    county <- o .: "county"
+    formattedStreet <- o .: "formatted_street"
+    number <- o .: "number"
+    predirectional <- o .: "predirectional "
+    secondarynumber <- o .: "secondarynumber"
+    secondaryunit <- o .: "secondaryunit"
+    state <- o .: "state"
+    street <- o .: "street"
+    suffix <- o .: "suffix"
+    zip <- o .: "zip"
     pure $ AddressComponents
-      { number
+      { city
+      , country
+      , county
+      , formattedStreet
+      , number
       , predirectional
+      , secondarynumber
+      , secondaryunit
+      , state
       , street
       , suffix
-      , formattedStreet
-      , city
-      , county
-      , state
       , zip
-      , country
       }
 
-newtype GeoCoords = GeoCoords
+data GeoCoords = GeoCoords
   { lat :: Number
   , lng :: Number
   }
 
-derive newtype instance Eq GeoCoords
-derive newtype instance Ord GeoCoords
-derive newtype instance Show GeoCoords
+derive instance Eq GeoCoords
+derive instance Ord GeoCoords
+-- derive instance Show GeoCoords
 
 instance decodeJsonGeoCoords :: DecodeJson GeoCoords where
   decodeJson json = do
-    o <- JD.decodeJson json
-    o' <- o .: "location"
-    lat <- o' .: "lat"
-    lng <- o' .: "lng"
+    obj <- JD.decodeJson json
+    o <- obj .: "location"
+    lat <- o .: "lat"
+    lng <- o .: "lng"
     pure $ GeoCoords { lat, lng }
 
 -- | INTERNAL
@@ -134,7 +141,8 @@ validate_ apiKey = void $ launchAff $ do
   case result of
     Left err -> log $ "GET /api response failed to decode: " <> AX.printError err
     Right response -> log $ show $ addressDecoder response.body
-    -- Right response -> log $ "GET /api response: " <> J.stringify response.body
+
+-- Right response -> log $ "GET /api response: " <> J.stringify response.body
 
 -- | Batch validate incoming address against Geocodio API
 batchValidate_ :: Effect Unit
