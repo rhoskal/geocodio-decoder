@@ -5,6 +5,7 @@ module Main
   , batchValidate_
   , format_
   , parts_
+  , toJson_
   , validate_
   ) where
 
@@ -185,8 +186,11 @@ format_ :: Address -> String
 format_ = _.formatted <$> unwrap
 
 -- | Return AddressComponents as JSON format
-parts_ :: Address -> Json
-parts_ = J.encodeJson <$> _.components <$> unwrap
+parts_ :: Address -> AddressComponents
+parts_ = _.components <$> unwrap
+
+toJson_ :: forall a. EncodeJson a => a -> Json
+toJson_ = J.encodeJson
 
 -- | Validate incoming address against Geocodio API
 validate_ :: String -> Effect Unit
