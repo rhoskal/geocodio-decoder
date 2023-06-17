@@ -4,11 +4,11 @@
   , "affjax"
   , "affjax-node"
   , "argonaut"
-  , "argonaut-codecs"
   , "console"
   , "effect"
   , "either"
   , "maybe"
+  , "newtype"
   , "prelude"
   ]
 , license = ""
