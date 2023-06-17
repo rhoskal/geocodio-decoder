@@ -12,26 +12,21 @@ import Prelude
 
 import Affjax as AX
 import Affjax.Node as AN
--- import Affjax.RequestBody as RequestBody
 import Affjax.ResponseFormat as ResponseFormat
 import Data.Argonaut
   ( class DecodeJson
   , class EncodeJson
   , Json
-  )
-import Data.Argonaut as J
-import Data.Argonaut.Decode
-  ( JsonDecodeError
+  , JsonDecodeError
   , (.:)
   , (.:?)
-  )
-import Data.Argonaut.Decode as JD
-import Data.Argonaut.Encode
-  ( (:=)
+  , (:=)
   , (:=?)
   , (~>)
   , (~>?)
   )
+import Data.Argonaut as J
+import Data.Argonaut.Decode (decodeJson)
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe)
@@ -40,7 +35,7 @@ import Effect (Effect)
 import Effect.Aff (launchAff)
 import Effect.Class.Console (log)
 
-data Address = Address
+newtype Address = Address
   { accuracy :: Int
   , accuracyType :: String
   , components :: AddressComponents
@@ -58,8 +53,7 @@ instance showAddress :: Show Address where
 
 instance decodeJsonAddress :: DecodeJson Address where
   decodeJson json = do
-    obj <- JD.decodeJson json
-    o <- obj .: "results"
+    o <- decodeJson json
     accuracy <- o .: "accuracy"
     accuracyType <- o .: "accuracy_type"
     components <- o .: "address_components"
@@ -78,14 +72,14 @@ instance decodeJsonAddress :: DecodeJson Address where
 instance encodeJsonAddress :: EncodeJson Address where
   encodeJson (Address a) = do
     "accuracy" := a.accuracy
-      ~> "accuracy_type" := a.accuracyType
-      ~> "address_components" := a.components
-      ~> "formatted_address" := a.formatted
-      ~> "location" := a.location
-      ~> "source" := a.source
+      ~> ("accuracy_type" := a.accuracyType)
+      ~> ("address_components" := a.components)
+      ~> ("formatted_address" := a.formatted)
+      ~> ("location" := a.location)
+      ~> ("source" := a.source)
       ~> J.jsonEmptyObject
 
-data AddressComponents = AddressComponents
+newtype AddressComponents = AddressComponents
   { city :: String
   , country :: String
   , county :: String
@@ -109,7 +103,7 @@ instance showAddressComponents :: Show AddressComponents where
 
 instance decodeJsonAddressComponents :: DecodeJson AddressComponents where
   decodeJson json = do
-    o <- JD.decodeJson json
+    o <- decodeJson json
     city <- o .: "city"
     country <- o .: "country"
     county <- o .: "county"
@@ -140,20 +134,20 @@ instance decodeJsonAddressComponents :: DecodeJson AddressComponents where
 instance encodeJsonAddressComponents :: EncodeJson AddressComponents where
   encodeJson (AddressComponents ac) = do
     "city" := ac.city
-      ~> "country" := ac.country
-      ~> "county" := ac.county
-      ~> "formatted_street" := ac.formattedStreet
-      ~> "number" := ac.number
-      ~> "predirectional" :=? ac.preDirectional
-      ~>? "secondarynumber" :=? ac.secondaryNumber
-      ~>? "secondaryunit" :=? ac.secondaryUnit
-      ~>? "state" := ac.state
-      ~> "street" := ac.street
-      ~> "suffix" := ac.suffix
-      ~> "zip" := ac.zip
+      ~> ("country" := ac.country)
+      ~> ("county" := ac.county)
+      ~> ("formatted_street" := ac.formattedStreet)
+      ~> ("number" := ac.number)
+      ~> ("pre_directional" :=? ac.preDirectional)
+      ~>? ("secondary_number" :=? ac.secondaryNumber)
+      ~>? ("secondary_unit" :=? ac.secondaryUnit)
+      ~>? ("state" := ac.state)
+      ~> ("street" := ac.street)
+      ~> ("suffix" := ac.suffix)
+      ~> ("zip" := ac.zip)
       ~> J.jsonEmptyObject
 
-data GeoCoords = GeoCoords
+newtype GeoCoords = GeoCoords
   { lat :: Number
   , lng :: Number
   }
@@ -167,7 +161,7 @@ instance showGeoCoords :: Show GeoCoords where
 
 instance decodeJsonGeoCoords :: DecodeJson GeoCoords where
   decodeJson json = do
-    o <- JD.decodeJson json
+    o <- decodeJson json
     lat <- o .: "lat"
     lng <- o .: "lng"
     pure $ GeoCoords { lat, lng }
@@ -175,12 +169,15 @@ instance decodeJsonGeoCoords :: DecodeJson GeoCoords where
 instance encodeJsonGeoCoords :: EncodeJson GeoCoords where
   encodeJson (GeoCoords c) = do
     "lat" := c.lat
-      ~> "lng" := c.lng
+      ~> ("lng" := c.lng)
       ~> J.jsonEmptyObject
 
 -- | INTERNAL
-addressDecoder :: Json -> Either JsonDecodeError Address
-addressDecoder = JD.decodeJson
+decoder :: Json -> Either JsonDecodeError (Array Address)
+decoder =
+  decodeJson
+    <=< (_ .: "results")
+    <=< decodeJson
 
 -- | Pretty format Address e.g. "1109 N Highland St, Arlington, VA"
 format_ :: Address -> String
@@ -200,7 +197,7 @@ validate_ apiKey = void $ launchAff $ do
   result <- AN.get ResponseFormat.json $ path <> query <> "&api_key=" <> apiKey
   case result of
     Left err -> log $ "GET /api response failed to decode: " <> AX.printError err
-    Right response -> log $ genericShow $ addressDecoder response.body
+    Right response -> log $ genericShow $ decoder response.body
 
 -- Right response -> log $ "GET /api response: " <> J.stringify response.body
 
