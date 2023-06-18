@@ -13,12 +13,13 @@ import Prelude
 
 import Affjax as AX
 import Affjax.Node as AN
+import Affjax.RequestBody as RequestBody
 import Affjax.ResponseFormat as ResponseFormat
 import Data.Argonaut (class DecodeJson, class EncodeJson, Json, JsonDecodeError, (.:), (.:?), (:=), (:=?), (~>), (~>?))
 import Data.Argonaut as J
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
 import Data.Show.Generic (genericShow)
 import Effect (Effect)
@@ -196,17 +197,26 @@ toJson_ = J.encodeJson
 validate_ :: String -> Effect Unit
 validate_ apiKey = void $ launchAff $ do
   let
-    path = "https://api.geocod.io/v1.7/geocode"
+    host = "https://api.geocod.io"
+    path = "/v1.7/geocode"
     query = "?q=" <> "1109+N+Highland+St%2c+Arlington+VA"
+    url = host <> path <> query <> "&api_key=" <> apiKey
   -- https://github.com/purescript-contrib/purescript-form-urlencoded
-  result <- AN.get ResponseFormat.json $ path <> query <> "&api_key=" <> apiKey
-  case result of
-    Left err -> log $ "GET /api response failed to decode: " <> AX.printError err
-    Right response -> log $ genericShow $ decoder response.body
-
--- Right response -> log $ "GET /api response: " <> J.stringify response.body
+  AN.get ResponseFormat.json url
+    >>= case _ of
+      Left err -> log $ "GET /api response failed to decode: " <> AX.printError err
+      Right response -> log $ genericShow $ decoder response.body
 
 -- | Batch validate incoming address against Geocodio API
-batchValidate_ :: Effect Unit
-batchValidate_ =
-  log "not implemented"
+batchValidate_ :: String -> Effect Unit
+batchValidate_ apiKey = void $ launchAff $ do
+  let
+    host = "https://api.geocod.io"
+    path = "/v1.7/geocode"
+    queryParams = "?q=" <> "api_key" <> apiKey
+    jsonBody = Just $ RequestBody.json J.jsonEmptyArray
+    url = host <> path <> queryParams
+  AN.post ResponseFormat.json url jsonBody
+    >>= case _ of
+      Left err -> log $ "GET /api response failed to decode: " <> AX.printError err
+      Right response -> log $ genericShow $ decoder response.body
