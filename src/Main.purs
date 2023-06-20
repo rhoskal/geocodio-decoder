@@ -36,11 +36,8 @@ newtype Address = Address
   }
 
 derive instance Eq Address
-
 derive instance Ord Address
-
 derive instance genericAddress :: Generic Address _
-
 derive instance newtypeAddress :: Newtype Address _
 
 instance showAddress :: Show Address where
@@ -90,11 +87,8 @@ newtype AddressComponents = AddressComponents
   }
 
 derive instance Eq AddressComponents
-
 derive instance Ord AddressComponents
-
 derive instance genericAddressComponents :: Generic AddressComponents _
-
 derive instance newtypeAddressComponents :: Newtype AddressComponents _
 
 instance showAddressComponents :: Show AddressComponents where
@@ -152,11 +146,8 @@ newtype GeoCoords = GeoCoords
   }
 
 derive instance Eq GeoCoords
-
 derive instance Ord GeoCoords
-
 derive instance genericGeoCoords :: Generic GeoCoords _
-
 derive instance newtypeGeoCoords :: Newtype GeoCoords _
 
 instance showGeoCoords :: Show GeoCoords where
