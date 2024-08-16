@@ -1,4 +1,4 @@
-# plugin-addr-geocodio
+# Geocodio decoder
 
 > address validator using (Geocodio)[https://www.geocod.io/] API
 
